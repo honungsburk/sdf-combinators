@@ -1,3 +1,5 @@
+pub mod sfd_2d;
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }

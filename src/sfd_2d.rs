@@ -1,8 +1,4 @@
-// Source Links
-//
-// https://iquilezles.org/articles/distfunctions/
-// https://iquilezles.org/articles/distfunctions2d/
-// https://iquilezles.org/articles/distgradfunctions2d/
+use glam::Vec2;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Core
