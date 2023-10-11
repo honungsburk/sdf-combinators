@@ -1,4 +1,4 @@
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Core
@@ -450,5 +450,52 @@ mod rectangle_tests {
         );
         assert_eq!(b.distance_xy(2.0, 2.0), 1.0, "point outside rectangle");
         assert_eq!(b.distance_xy(1.0, 4.0), 2.0, "point outside rectangle");
+    }
+}
+
+// Rounded Rectangle
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct RoundedRectangle {
+    size: Vec2,
+    radius: Vec4,
+}
+
+impl RoundedRectangle {
+    pub fn new(width: f32, height: f32, radius: f32) -> Self {
+        Self {
+            size: Vec2::new(width, height),
+            radius: Vec4::new(radius, radius, radius, radius),
+        }
+    }
+
+    pub fn from_vec(size: Vec2, radius: Vec4) -> Self {
+        Self { size, radius }
+    }
+}
+
+pub fn rounded_rectangle(width: f32, height: f32, radius: f32) -> RoundedRectangle {
+    RoundedRectangle::new(width, height, radius)
+}
+
+impl SDF2D for RoundedRectangle {
+    // TODO: Check that this is correct
+    fn distance(&self, point: Vec2) -> f32 {
+        let r = if point.x > 0.0 {
+            if point.y > 0.0 {
+                self.radius.x
+            } else {
+                self.radius.y
+            }
+        } else {
+            if point.y > 0.0 {
+                self.radius.z
+            } else {
+                self.radius.w
+            }
+        };
+
+        let q = point.abs() - self.size + Vec2::new(r, r);
+        return q.x.max(q.y).min(0.0) + q.max(Vec2::ZERO).length() - r;
     }
 }
