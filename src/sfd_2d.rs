@@ -7,7 +7,11 @@ use glam::Vec2;
 pub trait SDF2D {
     fn distance(&self, point: Vec2) -> f32;
 
-    // fn union(&self, other: Box<dyn SDF2D>) -> Union {
+    fn distance_xy(&self, x: f32, y: f32) -> f32 {
+        self.distance(Vec2::new(x, y))
+    }
+
+    // fn union(&self, other: Rectangle<dyn SDF2D>) -> Union {
     //     Union::new(self, other)
     // }
 }
@@ -366,7 +370,7 @@ impl SDF2D for Circle {
 }
 
 #[cfg(test)]
-mod tests {
+mod circle_tests {
     use super::*;
 
     #[test]
@@ -375,16 +379,76 @@ mod tests {
 
         // Test a point outside the circle
         let point1 = Vec2::new(10.0, 0.0);
-        assert_eq!(circle.distance(point1), 5.0);
+        assert_eq!(circle.distance(point1), 5.0, "point outside circle");
 
         // Test a point inside the circle
         let point2 = Vec2::new(0.0, 4.0);
-        assert_eq!(circle.distance(point2), -1.0);
+        assert_eq!(circle.distance(point2), -1.0, "point inside circle");
 
         // Test a point on the circle
         let point3 = Vec2::new(5.0, 0.0);
-        assert_eq!(circle.distance(point3), 0.0);
+        assert_eq!(circle.distance(point3), 0.0, "point on circle");
     }
 }
 
-// Circle
+// Rectangle
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct Rectangle {
+    size: Vec2,
+}
+
+impl Rectangle {
+    pub fn new(width: f32, height: f32) -> Self {
+        Self {
+            size: Vec2::new(width, height),
+        }
+    }
+
+    pub fn from_vec2(size: Vec2) -> Self {
+        Self { size }
+    }
+}
+
+pub fn rectangle(width: f32, height: f32) -> Rectangle {
+    Rectangle::new(width, height)
+}
+
+impl SDF2D for Rectangle {
+    fn distance(&self, point: Vec2) -> f32 {
+        let q = point.abs() - self.size;
+        q.x.max(q.y).min(0.0) + q.max(Vec2::ZERO).length()
+    }
+}
+
+#[cfg(test)]
+mod rectangle_tests {
+    use super::*;
+
+    #[test]
+    fn test_distance() {
+        let b = Rectangle::new(1.0, 2.0);
+        assert_eq!(
+            b.distance_xy(0.0, 0.0),
+            -1.0,
+            "point in the middle of rectangle"
+        );
+        assert_eq!(
+            b.distance_xy(1.0, 0.0),
+            0.0,
+            "point on the edge of rectangle"
+        );
+        assert_eq!(
+            b.distance_xy(0.0, 2.0),
+            0.0,
+            "point on the edge of rectangle"
+        );
+        assert_eq!(
+            b.distance_xy(1.0, 2.0),
+            0.0,
+            "point on the corner of rectangle"
+        );
+        assert_eq!(b.distance_xy(2.0, 2.0), 1.0, "point outside rectangle");
+        assert_eq!(b.distance_xy(1.0, 4.0), 2.0, "point outside rectangle");
+    }
+}
